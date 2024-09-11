@@ -16,7 +16,15 @@
 package com.example.exoplayer
 
 import android.os.Bundle
+import android.os.PersistableBundle
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
+import androidx.media3.exoplayer.ExoPlayer
 import com.example.exoplayer.databinding.ActivityPlayerBinding
 
 /**
@@ -28,8 +36,60 @@ class PlayerActivity : AppCompatActivity() {
     ActivityPlayerBinding.inflate(layoutInflater)
   }
 
+
+
+  override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+    super.onCreate(savedInstanceState, persistentState)
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(viewBinding.root)
+  }
+
+  private var player: ExoPlayer? = null
+
+  private fun initializePlayer() {
+    player = ExoPlayer.Builder(this)
+      .build()
+      .also { exoplayer ->
+        viewBinding.videoView.player = exoplayer
+
+        val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
+        exoplayer.setMediaItem(mediaItem)
+        exoplayer.playWhenReady = true
+        exoplayer.seekTo(0, 0)
+        exoplayer.prepare()
+      }
+  }
+
+  @OptIn(UnstableApi::class)
+  public override fun onStart() {
+    super.onStart()
+    if(Util.SDK_INT > 23) {
+      initializePlayer()
+    }
+  }
+
+  override fun onStop() {
+    super.onStop()
+  }
+  override fun onPause() {
+    super.onPause()
+  }
+
+  @OptIn(UnstableApi::class)
+  public override fun onResume() {
+    super.onResume()
+    if(Util.SDK_INT <= 23 || player == null) {
+      initializePlayer()
+    }
+  }
+
+  private fun hideSystemUi() {
+    WindowCompat.setDecorFitsSystemWindows(window, false)
+    WindowInsetsControllerCompat(window, viewBinding.videoView).let { controller ->
+      
+    }
   }
 }
